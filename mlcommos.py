@@ -14,20 +14,28 @@ import ai8x
 
 from PIL import Image
 
+import os
+
 numberOfMels = 64
+
+usedDataset = 0.1
+
+
 
 class MLCommons(torch.utils.data.Dataset):
 
  
 
-    def __init__(self,DataSetPath,test=False,transform=None) -> None:
+    def __init__(self,DataSetPath,test=False,transform=None,output2d=False) -> None:
 
+        self.output2d = output2d
        
         self.transform = transform
         # DataSetPath = "mswc_microset/en/"
 
         ClipsPath = DataSetPath + "clips/"
 
+        self.processedPath = DataSetPath + "processed/"
  
 
         if test:  
@@ -50,14 +58,34 @@ class MLCommons(torch.utils.data.Dataset):
 
         KeyWords = list(set(csvData['WORD']))
         
+        
+        if test:
+            print("Loading TestSet")
+            if os.path.exists(self.processedPath+"testData.pt"):
+                self.data, self.labels = torch.load(self.processedPath+"testData.pt")
+            else:
+                self.data, self.labels = load_data(csvData,KeyWords,ClipsPath)
+                try:
+                    os.makedirs(self.processedPath)
+                except:
+                    print("processed exists")    
+                self.saveData = (self.data,self.labels)
+                torch.save(self.saveData,self.processedPath+"testData.pt")
+        else:
+            print("Loading TrainSet")
+            if os.path.exists(self.processedPath+"trainData.pt"):
+                self.data, self.labels = torch.load(self.processedPath+"trainData.pt")
+            else:
+                self.data, self.labels = load_data(csvData,KeyWords,ClipsPath)
+                try:
+                    os.makedirs(self.processedPath)
+                except:
+                    print("processed exists")    
+                self.saveData = (self.data,self.labels)
+                torch.save(self.saveData,self.processedPath+"trainData.pt")
 
- 
-
-        self.data, self.lables= load_data(csvData,KeyWords,ClipsPath)
-
-
-
-
+        self.data = np.array(self.data)
+        self.labels = np.array(self.labels)
        
 
  
@@ -72,26 +100,31 @@ class MLCommons(torch.utils.data.Dataset):
 
  
 
-        img, target = self.data[index], self.lables[index]
+        img, target = self.data[index], self.labels[index]
 
+        # if(self.output2d == True):
+        #     img =  np.squeeze(img)
+        
         # doing this so that it is consistent with all other datasets
 
         # to return a PIL Image
 
-        img = Image.fromarray(img, mode='L')
+        #img = Image.fromarray(img, mode='L')
 
+        
  
 
         if self.transform is not None:
 
             img = self.transform(img)
-
+        
+        #img = np.array(img)
         target = int(target)
 
- 
-        #print(f'MFCC index {index} has shape {img.shape}')
+        # print(type(img))
+        # #print(f'MFCC index {index} has shape {img.shape}')
        
-
+        # print(img.shape)
         return img, target
 
  
@@ -112,7 +145,7 @@ def load_data(traindata,keyWords,ClipsPath):
 
     # testsize = len(testdata) # Number of loaded testing samples
 
-    dataSetSize = 10 # Number of loaded training samples
+    dataSetSize = int(len(traindata) * usedDataset ) # Number of loaded training samples
 
     overlap = 128
 
@@ -164,13 +197,9 @@ def load_data(traindata,keyWords,ClipsPath):
 
  
 
-    x_data = audio2image(np.asarray(x_list),fs,n_mels=numberOfMels)
+    x_data = torch.from_numpy(audio2image(np.asarray(x_list),fs,n_mels=numberOfMels))
 
-    y_data = np.asarray(y_list)
-
- 
-
- 
+    y_data = torch.from_numpy(np.asarray(y_list))
 
  
 
@@ -244,51 +273,54 @@ def audio2image(audio, sr, n_mels=64, f_max=8000, hop_length=256, n_fft=512):
  
 
 def mlcommos_get_datasets(data, load_train=True, load_test=True):
-
     (data_dir, args) = data
-
     data_dir = "../mswc_microset/en/"
-
- 
-
     transform = transforms.Compose([
-
             transforms.ToTensor(),
-
             ai8x.normalize(args=args)
-
         ])
 
- 
-
     if load_train:
-
         train_dataset = MLCommons(data_dir, test=False ,transform=transform)
-
     else:
-
         train_dataset = None
 
- 
-
     if load_test:
-
-        test_dataset = MLCommons(data_dir, test=False ,transform=transform)
-
- 
+        test_dataset = MLCommons(data_dir, test=True ,transform=transform)
 
         if args.truncate_testset:
-
             test_dataset.data = test_dataset.data[:1]
-
     else:
-
         test_dataset = None
 
  
 
     return train_dataset, test_dataset
 
+def mlcommos_get_datasets2D(data, load_train=True, load_test=True):
+    (data_dir, args) = data
+    data_dir = "../mswc_microset/en/"
+    transform = transforms.Compose([
+            transforms.ToTensor(),
+            ai8x.normalize(args=args)
+        ])
+
+    if load_train:
+        train_dataset = MLCommons(data_dir, test=False ,transform=transform,output2d=True)
+    else:
+        train_dataset = None
+
+    if load_test:
+        test_dataset = MLCommons(data_dir, test=True ,transform=transform,output2d=True)
+
+        if args.truncate_testset:
+            test_dataset.data = test_dataset.data[:1]
+    else:
+        test_dataset = None
+
+ 
+
+    return train_dataset, test_dataset
 
 
 
@@ -299,17 +331,16 @@ Dataset description
 """
 
 datasets = [
-
     {
-
         'name': 'mlcommos',
-
         'input': (1, 64, 64),
-
         'output': list(map(str, range(31))),
-
         'loader': mlcommos_get_datasets,
-
+    },
+    {
+        'name': 'mlcommos2D',
+        'input': (64, 64),
+        'output': list(map(str, range(31))),
+        'loader': mlcommos_get_datasets2D,
     }
-
 ]
