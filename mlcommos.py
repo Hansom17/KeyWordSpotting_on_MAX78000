@@ -86,8 +86,6 @@ class MLCommons(torch.utils.data.Dataset):
 
         self.data = np.array(self.data)
         self.labels = np.array(self.labels)
-       
-
  
 
     def __len__(self):

@@ -18,7 +18,7 @@ import os
 
 numberOfMels = 64
 
-usedDataset = 0.1
+usedDataset = 0.25
 
 
 
