@@ -23,42 +23,49 @@ class KWSCNN(nn.Module):
                  fc_inputs=64, networkWidth = 64, bias=False, **kwargs):
         super().__init__()
 
-        print(dimensions)
-
-        # AI84 Limits
-        assert dimensions[0] == dimensions[1]  # Only square supported
+        print(f"dim: {dimensions}")
+        print(f"channels: {num_channels}")
 
         # Keep track of image dimensions so one constructor works for all image sizes
         dim = dimensions[0]
+        dim2 = dimensions[1]
 
-        self.conv1 = ai8x.FusedConv2dBNReLU(num_channels, networkWidth/4, 3,
-                                          padding=1, bias=bias, **kwargs)
+        self.conv1 = ai8x.FusedConv2dBNReLU(num_channels, int(networkWidth/4), 3,
+                                          padding=0, bias=bias, **kwargs)
         # padding 1 -> no change in dimensions -> 15x28x28
 
-        pad = 2 if dim == 28 else 1
-        self.conv2 = ai8x.FusedMaxPoolConv2dBNReLU(networkWidth/4, networkWidth/2, 3, pool_size=2, pool_stride=2,
-                                                 padding=pad, bias=bias, **kwargs)
+        dim -= 2
+        
+        
+        self.conv2 = ai8x.FusedMaxPoolConv2dBNReLU(int(networkWidth/4), int(networkWidth/2), 3, pool_size=2, pool_stride=2,
+                                                 padding=1, bias=bias, **kwargs)
         dim //= 2  # pooling, padding 0 -> 30x14x14
-        if pad == 2:
-            dim += 2  # padding 2 -> 30x16x16
-
-        self.conv3 = ai8x.FusedMaxPoolConv2dBNReLU(networkWidth/2, networkWidth, 3, pool_size=2, pool_stride=2, padding=1,
+        dim2 //=2
+        
+        
+        self.conv3 = ai8x.FusedMaxPoolConv2dBNReLU(int(networkWidth/2), networkWidth, 3, pool_size=2, pool_stride=2, padding=1,
                                                  bias=bias, **kwargs)
         dim //= 2  # pooling, padding 0 -> 60x8x8
+        dim2 //= 2
 
-        self.conv4 = ai8x.FusedMaxPoolConv2dBNReLU(networkWidth, 64, 3, pool_size=2, pool_stride=2, padding=1,
-                                                 bias=bias, **kwargs)
-        dim //= 2  # pooling, padding 0 -> 30x4x4
+        # self.conv4 = ai8x.FusedMaxPoolConv2dBNReLU(networkWidth, networkWidth, 3, pool_size=2, pool_stride=2, padding=1,
+        #                                          bias=bias, **kwargs)
+        # dim //= 2  # pooling, padding 0 -> 30x4x4
+        # dim2 //=2
 
-        self.conv5 = ai8x.FusedMaxPoolConv2dBNReLU(64, 32, 3, pool_size=2, pool_stride=2, padding=1,
+        self.conv5 = ai8x.FusedMaxPoolConv2dBNReLU(networkWidth, fc_inputs, 3, pool_size=2, pool_stride=2, padding=1,
                                                  bias=bias, **kwargs)
         dim //= 2  # pooling, padding 0 -> 30x2x2
+        dim2 //= 2
 
-        self.conv6 = ai8x.FusedAvgPoolConv2dBNReLU(32, fc_inputs, 3, pool_size=3, pool_stride=3, padding=1, bias=bias, **kwargs)
+        self.conv6 = ai8x.FusedAvgPoolConv2dBNReLU(fc_inputs, fc_inputs, 3, pool_size=6, pool_stride=6, padding=1, bias=bias, **kwargs)
         
-        dim //= 3
+        dim //= 6
+        dim2 //= 6
+        dim = int(dim)
+        dim2 = int(dim2)
 
-        self.fc = ai8x.FusedLinearReLU(fc_inputs*dim*dim, num_classes, bias=True)
+        self.fc = ai8x.FusedLinearReLU(fc_inputs*dim*dim2, num_classes, bias=True)
 
         # for m in self.modules():
         #     if isinstance(m, nn.Conv2d):
@@ -69,12 +76,13 @@ class KWSCNN(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
-        x = self.conv4(x)
+        # x = self.conv4(x)
         x = self.conv5(x)
         x = self.conv6(x)
+        
         x = x.view(x.size(0), -1)
+        # print(x.shape)
         x = self.fc(x)
-
         return x
 
 

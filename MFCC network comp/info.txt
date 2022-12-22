@@ -1,0 +1,9 @@
+dataset ist mlcommos2d mit 0.5 usage
+
+200 epochen
+
+kws20v1 hat ca 80% acc in training
+
+kws20v2 70%
+
+kws20v3 60%
