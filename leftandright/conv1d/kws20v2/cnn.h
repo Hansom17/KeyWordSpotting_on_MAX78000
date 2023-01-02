@@ -42,6 +42,9 @@ typedef int16_t q15_t;
 /* Number of outputs for this network */
 #define CNN_NUM_OUTPUTS 3
 
+/* Use this timer to time the inference */
+#define CNN_INFERENCE_TIMER MXC_TMR0
+
 /* Port pin actions used to signal that processing is active */
 
 #define CNN_START LED_On(1)
