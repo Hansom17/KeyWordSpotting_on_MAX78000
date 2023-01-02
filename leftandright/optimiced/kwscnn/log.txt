@@ -1,0 +1,20 @@
+ai8xize.py --test-dir synthed_net --prefix kwscnn --checkpoint-file ../leftandright/optimiced/qat_best.pth.tar --config-file ../leftandright/optimiced/kwscnn.yaml --sample-input ../ai8x-training/sample_mlcommos.npy --device MAX78000 --overwrite
+MAX78000
+
+kwscnn
+NOTICE: Layer 4: The input channel count (46) is not a multiple of 4. Best energy performance is achieved with multiples of 4.
+WARNING: Layer 1: All output values for the given sample input are zero. The generated known-answer test for this network may not be meaningful. See the log file for details.
+WARNING: Layer 2: All output values for the given sample input are zero. The generated known-answer test for this network may not be meaningful. See the log file for details.
+WARNING: Layer 3: All output values for the given sample input are zero. The generated known-answer test for this network may not be meaningful. See the log file for details.
+SUMMARY OF OPS
+Hardware: 5,014,328 ops (4,905,234 macc; 103,718 comp; 5,376 add; 0 mul; 0 bitwise)
+  Layer 0: 305,792 ops (267,840 macc; 37,952 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 1: 2,187,360 ops (2,142,720 macc; 44,640 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 2: 1,955,520 ops (1,935,360 macc; 20,160 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 3: 562,758 ops (556,416 macc; 966 comp; 5,376 add; 0 mul; 0 bitwise)
+  Layer 4: 2,898 ops (2,898 macc; 0 comp; 0 add; 0 mul; 0 bitwise)
+
+RESOURCE USAGE
+Weight memory: 6,590 bytes out of 442,368 bytes total (1.5%)
+Bias memory:   161 bytes out of 2,048 bytes total (7.9%)
+

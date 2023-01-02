@@ -1,0 +1,20 @@
+ai8xize.py --test-dir synthed_net --prefix kws20v2 --checkpoint-file ../leftandright/conv1d/kws_trained-q.pth.tar --config-file ../leftandright/conv1d/kws20-v2-hwc.yaml --sample-input ../ai8x-training/sample_mlcommos2d.npy --device MAX78000 --overwrite
+MAX78000
+
+kws20v2
+SUMMARY OF OPS
+Hardware: 5,944,096 ops (5,913,344 macc; 28,448 comp; 2,304 add; 0 mul; 0 bitwise)
+  Layer 0: 825,600 ops (819,200 macc; 6,400 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 1: 895,776 ops (892,800 macc; 2,976 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 2: 434,496 ops (428,544 macc; 5,952 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 3: 1,072,768 ops (1,069,056 macc; 3,712 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 4: 865,984 ops (860,160 macc; 5,824 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 5: 1,108,224 ops (1,105,920 macc; 2,304 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 6: 667,008 ops (663,552 macc; 1,152 comp; 2,304 add; 0 mul; 0 bitwise)
+  Layer 7: 73,856 ops (73,728 macc; 128 comp; 0 add; 0 mul; 0 bitwise)
+  Layer 8: 384 ops (384 macc; 0 comp; 0 add; 0 mul; 0 bitwise)
+
+RESOURCE USAGE
+Weight memory: 360,896 bytes out of 442,368 bytes total (81.6%)
+Bias memory:   0 bytes out of 2,048 bytes total (0.0%)
+
